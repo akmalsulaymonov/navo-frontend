@@ -47,15 +47,26 @@ export default function Footer() {
 
           <div>
             <div className="text-[11px] font-bold tracking-[1.5px] uppercase text-[#666] mb-4">{t('footer.company')}</div>
-            {[t('footer.about'), t('footer.editorial'), t('footer.team'), t('footer.advertising'), t('footer.contacts')].map(l => (
-              <button key={l} className="block text-[14px] text-[#999] mb-2.5 cursor-pointer bg-transparent border-none text-left p-0 transition-colors hover:text-secondary">{l}</button>
+            {[
+              [t('footer.about'), '/about'],
+              [t('footer.editorial'), '/editorial'],
+              [t('footer.team'), '/team'],
+              [t('footer.advertising'), '/advertising'],
+              [t('footer.contacts'), '/contacts'],
+            ].map(([l, href]) => (
+              <button key={l} onClick={() => router.push(href)} className="block text-[14px] text-[#999] mb-2.5 cursor-pointer bg-transparent border-none text-left p-0 transition-colors hover:text-secondary">{l}</button>
             ))}
           </div>
 
           <div>
             <div className="text-[11px] font-bold tracking-[1.5px] uppercase text-[#666] mb-4">{t('footer.legal')}</div>
-            {[t('footer.privacy'), t('footer.terms'), t('footer.cookies'), t('footer.gdpr')].map(l => (
-              <button key={l} className="block text-[14px] text-[#999] mb-2.5 cursor-pointer bg-transparent border-none text-left p-0 transition-colors hover:text-secondary">{l}</button>
+            {[
+              [t('footer.privacy'), '/privacy'],
+              [t('footer.terms'), '/terms'],
+              [t('footer.cookies'), '/cookies'],
+              [t('footer.gdpr'), '/gdpr'],
+            ].map(([l, href]) => (
+              <button key={l} onClick={() => router.push(href)} className="block text-[14px] text-[#999] mb-2.5 cursor-pointer bg-transparent border-none text-left p-0 transition-colors hover:text-secondary">{l}</button>
             ))}
             <div className="mt-5">
               <div className="text-[11px] font-bold tracking-[1.5px] uppercase text-[#666] mb-2.5">{t('footer.newsletter')}</div>
@@ -72,8 +83,12 @@ export default function Footer() {
         <div className="border-t border-[#2a2a2a] pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
           <span className="text-[13px] text-[#555]">{t('footer.copyright')}</span>
           <div className="flex gap-5">
-            {[t('footer.privacy_s'), t('footer.terms_s'), t('footer.cookies_s')].map(l => (
-              <button key={l} className="text-[13px] text-[#999] cursor-pointer bg-transparent border-none p-0 transition-colors hover:text-secondary">{l}</button>
+            {[
+              [t('footer.privacy_s'), '/privacy'],
+              [t('footer.terms_s'), '/terms'],
+              [t('footer.cookies_s'), '/cookies'],
+            ].map(([l, href]) => (
+              <button key={l} onClick={() => router.push(href)} className="text-[13px] text-[#999] cursor-pointer bg-transparent border-none p-0 transition-colors hover:text-secondary">{l}</button>
             ))}
           </div>
         </div>
