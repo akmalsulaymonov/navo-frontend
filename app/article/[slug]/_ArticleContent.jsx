@@ -1,16 +1,27 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { C } from '@/lib/constants'
+import { C, IMG_POOLS } from '@/lib/constants'
 import { NAVO_DATA, getFullAuthor } from '@/lib/data'
+import { getImgId } from '@/lib/utils'
 import { useT, useLanguage, CAT_DISPLAY } from '@/lib/i18n'
 import { ARTICLE_TRANSLATIONS } from '@/lib/articleTranslations'
 import ImgPlaceholder from '@/components/ui/ImgPlaceholder'
+import ImageGallery from '@/components/ui/ImageGallery'
 import NewsCard from '@/components/ui/NewsCard'
 import AdBlock from '@/components/ui/AdBlock'
 import SectionHeading from '@/components/ui/SectionHeading'
 import CategoryPill from '@/components/ui/CategoryPill'
 import TagPill from '@/components/ui/TagPill'
+
+function buildGalleryImages(article) {
+  const pool = article.category
+  const suffixes = ['', '-b', '-c', '-d']
+  return suffixes.map((s, i) => ({
+    src: `https://images.unsplash.com/${getImgId(article.slug + s, pool)}?auto=format&fit=crop&w=1200&q=80`,
+    caption: i === 0 && article.imageCaption ? article.imageCaption : null,
+  }))
+}
 
 const shareButtons = [
   { label: 'Telegram', color: '#0088cc' },
@@ -120,11 +131,7 @@ export default function ArticleContent({ article }) {
               </div>
             </div>
 
-            {/* Hero image */}
-            <div className="mb-8">
-              <ImgPlaceholder h={360} label={article.title} seed={article.slug} category={article.category} style={{ borderRadius: 6, width: '100%' }} />
-              {article.imageCaption && <p className="text-[13px] text-gray-500 mt-2.5 italic leading-snug">{article.imageCaption}</p>}
-            </div>
+            <ImageGallery images={buildGalleryImages(article)} />
 
             {/* Body */}
             <div className="max-w-[680px]">
