@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { C } from '@/lib/constants'
 import { NAVO_DATA, getFullAuthor } from '@/lib/data'
-import { getImgId } from '@/lib/utils'
+import { useT, useLanguage, CAT_DISPLAY } from '@/lib/i18n'
+import { ARTICLE_TRANSLATIONS } from '@/lib/articleTranslations'
 import ImgPlaceholder from '@/components/ui/ImgPlaceholder'
 import NewsCard from '@/components/ui/NewsCard'
 import AdBlock from '@/components/ui/AdBlock'
@@ -20,6 +21,13 @@ const shareButtons = [
 
 export default function ArticleContent({ article }) {
   const router = useRouter()
+  const t = useT()
+  const { lang } = useLanguage()
+  const catNames = CAT_DISPLAY[lang] || CAT_DISPLAY.en
+
+  const trans = ARTICLE_TRANSLATIONS[article.slug]?.[lang]
+  const displayTitle = trans?.title || article.title
+
   const [bookmarked, setBookmarked] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [comments, setComments] = useState([
@@ -30,17 +38,16 @@ export default function ArticleContent({ article }) {
   ])
 
   const mostRead = NAVO_DATA.mostRead.map(id => NAVO_DATA.articles.find(a => a.id === id)).filter(Boolean)
-  const related = NAVO_DATA.articles.filter(a => a.id !== article.id && (a.category === article.category || a.tags?.some(t => article.tags?.includes(t)))).slice(0, 3)
+  const related = NAVO_DATA.articles.filter(a => a.id !== article.id && (a.category === article.category || a.tags?.some(tag => article.tags?.includes(tag)))).slice(0, 3)
   const readAlso = related.length >= 2 ? related : NAVO_DATA.articles.filter(a => a.id !== article.id).slice(0, 3)
-
   const fullAuthor = getFullAuthor(article.author.name)
 
   const renderBody = (body) => body.slice(0, 3).map((block, i) => {
-    if (block.type === 'p') return <p key={i} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 17, lineHeight: 1.75, color: '#222', marginBottom: 24 }}>{block.content}</p>
+    if (block.type === 'p') return <p key={i} className="text-[17px] leading-[1.75] text-[#222] mb-6">{block.content}</p>
     if (block.type === 'quote') return (
-      <blockquote key={i} style={{ margin: '32px 0', padding: '20px 28px', borderLeft: `4px solid ${C.primary}`, background: C.bgSoft, borderRadius: '0 6px 6px 0' }}>
-        <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 18, fontWeight: 500, color: '#333', lineHeight: 1.65, fontStyle: 'italic', margin: '0 0 10px' }}>"{block.content}"</p>
-        {block.attribution && <cite style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: C.textSecondary, fontStyle: 'normal', fontWeight: 600 }}>— {block.attribution}</cite>}
+      <blockquote key={i} className="my-8 px-7 py-5 border-l-4 border-primary bg-soft rounded-r-md">
+        <p className="text-[18px] font-medium text-[#333] leading-[1.65] italic mb-2.5">"{block.content}"</p>
+        {block.attribution && <cite className="text-[13px] text-gray-500 not-italic font-semibold">— {block.attribution}</cite>}
       </blockquote>
     )
     return null
@@ -52,76 +59,87 @@ export default function ArticleContent({ article }) {
     setCommentText('')
   }
 
+  const totalComments = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
+
   return (
-    <div style={{ background: C.bg }}>
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 48 }}>
-          <article>
+    <div className="bg-white">
+      <div className="max-w-content mx-auto px-4 md:px-6 py-6 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-12">
+
+          <article className="min-w-0">
             {/* Breadcrumbs */}
-            <nav style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-              {['Home', article.category, article.title.slice(0, 30) + '…'].map((crumb, i, arr) => (
-                <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <nav className="flex items-center gap-2 mb-5 flex-wrap">
+              {[t('nav.home'), article.category, displayTitle.slice(0, 30) + '…'].map((crumb, i, arr) => (
+                <span key={i} className="flex items-center gap-2">
                   <span onClick={() => i === 0 ? router.push('/') : i === 1 ? router.push(`/category/${article.category}`) : null}
-                    style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: i === arr.length - 1 ? C.textSecondary : C.secondary, cursor: i < arr.length - 1 ? 'pointer' : 'default', fontWeight: i === arr.length - 1 ? 400 : 500 }}
-                  >{crumb}</span>
-                  {i < arr.length - 1 && <span style={{ color: C.neutral, fontSize: 13 }}>›</span>}
+                    className={`text-[13px] ${i === arr.length - 1 ? 'text-gray-500' : 'text-secondary cursor-pointer font-medium'}`}
+                  >{i === 1 ? (catNames[article.category] || crumb) : crumb}</span>
+                  {i < arr.length - 1 && <span className="text-gray-300 text-[13px]">›</span>}
                 </span>
               ))}
             </nav>
 
             <CategoryPill cat={article.category} />
-            <h1 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 36, fontWeight: 700, color: C.textPrimary, lineHeight: 1.2, margin: '14px 0 16px', letterSpacing: '-0.5px' }}>{article.title}</h1>
-            {article.subtitle && <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 20, fontWeight: 400, color: '#444', lineHeight: 1.5, marginBottom: 24, borderBottom: `1px solid ${C.neutral}`, paddingBottom: 24 }}>{article.subtitle}</p>}
+            <h1 className="text-[26px] md:text-[32px] lg:text-[36px] font-bold text-gray-900 leading-tight mt-3.5 mb-4 tracking-tight">{displayTitle}</h1>
+            {article.subtitle && (
+              <p className="text-[18px] md:text-[20px] font-normal text-[#444] leading-snug mb-6 border-b border-gray-300 pb-6">{article.subtitle}</p>
+            )}
 
             {/* Author + share */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                <div onClick={() => fullAuthor && router.push(`/author/${fullAuthor.slug}`)} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: fullAuthor ? 'pointer' : 'default' }}>
+            <div className="flex items-center justify-between mb-7 flex-wrap gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div onClick={() => fullAuthor && router.push(`/author/${fullAuthor.slug}`)}
+                  className={`flex items-center gap-3 ${fullAuthor ? 'cursor-pointer' : ''}`}>
                   {fullAuthor?.photoId
-                    ? <img src={`https://images.unsplash.com/${fullAuthor.photoId}?auto=format&fit=crop&w=88&h=88&q=80`} alt={article.author.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', objectPosition: 'top', border: `2px solid ${C.primary}`, flexShrink: 0 }} />
-                    : <div style={{ width: 44, height: 44, borderRadius: '50%', background: C.bgSoft, border: `2px solid ${C.primary}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 16, fontWeight: 700, color: C.primary }}>{article.author.name[0]}</span></div>
+                    ? <img src={`https://images.unsplash.com/${fullAuthor.photoId}?auto=format&fit=crop&w=88&h=88&q=80`} alt={article.author.name} className="w-11 h-11 rounded-full object-cover object-top border-2 border-primary shrink-0" />
+                    : <div className="w-11 h-11 rounded-full bg-soft border-2 border-primary flex items-center justify-center"><span className="text-[16px] font-bold text-primary">{article.author.name[0]}</span></div>
                   }
                   <div>
-                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, fontWeight: 700, color: C.primary, textDecoration: fullAuthor ? 'underline' : 'none', textDecorationStyle: 'dotted', textUnderlineOffset: 3 }}>{article.author.name}</div>
-                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 12, color: C.textSecondary }}>{article.author.role}</div>
+                    <div className="text-[14px] font-bold text-primary underline decoration-dotted underline-offset-[3px]">{article.author.name}</div>
+                    <div className="text-[12px] text-gray-500">{article.author.role}</div>
                   </div>
                 </div>
-                <span style={{ color: C.neutral }}>·</span>
-                <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: C.textSecondary }}>{article.date}</span>
-                <span style={{ color: C.neutral }}>·</span>
-                <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: C.textSecondary }}>{article.readTime}</span>
+                <span className="text-gray-300">·</span>
+                <span className="text-[13px] text-gray-500">{article.date}</span>
+                <span className="text-gray-300">·</span>
+                <span className="text-[13px] text-gray-500">{article.readTime}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="flex items-center gap-2 flex-wrap">
                 {shareButtons.map(s => (
-                  <button key={s.label} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 11, fontWeight: 700, color: s.color, background: 'none', border: `1px solid ${s.color}22`, borderRadius: 4, padding: '5px 10px', cursor: 'pointer', transition: 'all 0.15s' }}
+                  <button key={s.label}
+                    className="text-[11px] font-bold border rounded px-2.5 py-1 cursor-pointer transition-all hover:text-white"
+                    style={{ color: s.color, borderColor: s.color + '33' }}
                     onMouseEnter={e => { e.currentTarget.style.background = s.color; e.currentTarget.style.color = '#fff' }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = s.color }}
                   >{s.label}</button>
                 ))}
-                <button onClick={() => setBookmarked(b => !b)} style={{ background: bookmarked ? C.primary : 'none', border: `1px solid ${C.primary}`, borderRadius: 4, padding: '5px 10px', cursor: 'pointer', color: bookmarked ? '#fff' : C.primary, fontSize: 11, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', transition: 'all 0.15s' }}>{bookmarked ? '✓ Saved' : '☆ Save'}</button>
+                <button onClick={() => setBookmarked(b => !b)}
+                  className="text-[11px] font-bold border rounded px-2.5 py-1 cursor-pointer transition-all"
+                  style={{ background: bookmarked ? C.primary : 'none', borderColor: C.primary, color: bookmarked ? '#fff' : C.primary }}
+                >{bookmarked ? t('article.saved') : t('article.save')}</button>
               </div>
             </div>
 
             {/* Hero image */}
-            <div style={{ marginBottom: 32 }}>
-              <ImgPlaceholder h={440} label={article.title} seed={article.slug} category={article.category} style={{ borderRadius: 6, width: '100%' }} />
-              {article.imageCaption && <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: C.textSecondary, marginTop: 10, fontStyle: 'italic', lineHeight: 1.5 }}>{article.imageCaption}</p>}
+            <div className="mb-8">
+              <ImgPlaceholder h={360} label={article.title} seed={article.slug} category={article.category} style={{ borderRadius: 6, width: '100%' }} />
+              {article.imageCaption && <p className="text-[13px] text-gray-500 mt-2.5 italic leading-snug">{article.imageCaption}</p>}
             </div>
 
             {/* Body */}
-            <div style={{ maxWidth: 680 }}>
+            <div className="max-w-[680px]">
               {article.body ? renderBody(article.body) : (
-                <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 17, lineHeight: 1.75, color: '#222' }}>Full article content appears here. The editorial team has produced a comprehensive investigation into this topic, drawing on sources across multiple continents and months of on-the-ground reporting.</p>
+                <p className="text-[17px] leading-[1.75] text-[#222]">Full article content appears here. The editorial team has produced a comprehensive investigation into this topic, drawing on sources across multiple continents and months of on-the-ground reporting.</p>
               )}
-              <div style={{ margin: '32px 0', display: 'flex', justifyContent: 'center' }}>
+              <div className="my-8 flex justify-center">
                 <AdBlock w={580} h={90} label="580×90 in-article" />
               </div>
               {(article.body || []).slice(3).map((block, i) => {
-                if (block.type === 'p') return <p key={i} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 17, lineHeight: 1.75, color: '#222', marginBottom: 24 }}>{block.content}</p>
+                if (block.type === 'p') return <p key={i} className="text-[17px] leading-[1.75] text-[#222] mb-6">{block.content}</p>
                 if (block.type === 'quote') return (
-                  <blockquote key={i} style={{ margin: '32px 0', padding: '20px 28px', borderLeft: `4px solid ${C.primary}`, background: C.bgSoft, borderRadius: '0 6px 6px 0' }}>
-                    <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 18, fontWeight: 500, color: '#333', lineHeight: 1.65, fontStyle: 'italic', margin: '0 0 10px' }}>"{block.content}"</p>
-                    {block.attribution && <cite style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: C.textSecondary, fontStyle: 'normal', fontWeight: 600 }}>— {block.attribution}</cite>}
+                  <blockquote key={i} className="my-8 px-7 py-5 border-l-4 border-primary bg-soft rounded-r-md">
+                    <p className="text-[18px] font-medium text-[#333] leading-[1.65] italic mb-2.5">"{block.content}"</p>
+                    {block.attribution && <cite className="text-[13px] text-gray-500 not-italic font-semibold">— {block.attribution}</cite>}
                   </blockquote>
                 )
                 return null
@@ -129,57 +147,59 @@ export default function ArticleContent({ article }) {
             </div>
 
             {article.tags && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 32, paddingTop: 24, borderTop: `1px solid ${C.neutral}` }}>
-                {article.tags.map(t => <TagPill key={t} tag={t} onClick={() => router.push(`/search?q=${encodeURIComponent(t)}`)} />)}
+              <div className="flex flex-wrap gap-2 mt-8 pt-6 border-t border-gray-300">
+                {article.tags.map(tag => <TagPill key={tag} tag={tag} onClick={() => router.push(`/search?q=${encodeURIComponent(tag)}`)} />)}
               </div>
             )}
 
-            <div style={{ marginTop: 48 }}>
-              <SectionHeading title="Read Also" />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+            <div className="mt-12">
+              <SectionHeading title={t('article.read_also')} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {readAlso.map(a => <NewsCard key={a.slug || a.id} article={a} size="sm" />)}
               </div>
             </div>
 
             {/* Comments */}
-            <div style={{ marginTop: 48, paddingTop: 32, borderTop: `1px solid ${C.neutral}` }}>
-              <h3 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 22, fontWeight: 700, color: C.textPrimary, marginBottom: 24 }}>Comments ({comments.reduce((n, c) => n + 1 + c.replies.length, 0)})</h3>
-              <div style={{ background: C.bgSoft, borderRadius: 8, padding: 20, marginBottom: 32 }}>
-                <textarea value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Share your thoughts… (login required to post)"
-                  style={{ width: '100%', minHeight: 90, fontFamily: 'Montserrat, sans-serif', fontSize: 14, border: `1px solid ${C.neutral}`, borderRadius: 6, padding: 12, resize: 'vertical', outline: 'none', color: C.textPrimary, background: '#fff', boxSizing: 'border-box' }} />
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-                  <button onClick={addComment} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: 600, background: C.primary, color: '#fff', border: 'none', borderRadius: 4, padding: '9px 20px', cursor: 'pointer' }}>Post Comment</button>
+            <div className="mt-12 pt-8 border-t border-gray-300">
+              <h3 className="text-[22px] font-bold text-gray-900 mb-6">{t('article.comments')} ({totalComments})</h3>
+              <div className="bg-soft rounded-lg p-5 mb-8">
+                <textarea value={commentText} onChange={e => setCommentText(e.target.value)}
+                  placeholder={t('article.comment_placeholder')}
+                  className="w-full min-h-[90px] text-[14px] border border-gray-300 rounded-md p-3 resize-y outline-none text-gray-900 bg-white focus:border-primary transition-colors"
+                />
+                <div className="flex justify-end mt-2.5">
+                  <button onClick={addComment} className="text-[13px] font-semibold bg-primary text-white border-none rounded px-5 py-2.5 cursor-pointer">{t('article.post_comment')}</button>
                 </div>
               </div>
               {comments.map(c => (
-                <div key={c.id} style={{ marginBottom: 24 }}>
-                  <div style={{ display: 'flex', gap: 14 }}>
-                    <div style={{ width: 38, height: 38, borderRadius: '50%', background: C.bgSoft, border: `1px solid ${C.neutral}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: 700, color: C.primary }}>{c.author[0]}</span>
+                <div key={c.id} className="mb-6">
+                  <div className="flex gap-3.5">
+                    <div className="w-[38px] h-[38px] rounded-full bg-soft border border-gray-200 flex items-center justify-center shrink-0">
+                      <span className="text-[13px] font-bold text-primary">{c.author[0]}</span>
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                        <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, fontWeight: 700, color: C.textPrimary }}>{c.author}</span>
-                        <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 12, color: C.textSecondary }}>{c.time}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2.5 mb-1.5">
+                        <span className="text-[14px] font-bold text-gray-900">{c.author}</span>
+                        <span className="text-[12px] text-gray-500">{c.time}</span>
                       </div>
-                      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 15, color: '#333', lineHeight: 1.6, margin: '0 0 10px' }}>{c.text}</p>
-                      <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                      <p className="text-[15px] text-[#333] leading-relaxed mb-2.5">{c.text}</p>
+                      <div className="flex gap-3.5 items-center">
                         {[['👍', c.likes], ['👎', c.dislikes]].map(([icon, count]) => (
-                          <button key={icon} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: C.textSecondary, padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}>{icon} {count}</button>
+                          <button key={icon} className="bg-transparent border-none cursor-pointer text-[13px] text-gray-500 p-0 flex items-center gap-1">{icon} {count}</button>
                         ))}
-                        <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: C.secondary, fontWeight: 600, padding: 0 }}>Reply</button>
+                        <button className="bg-transparent border-none cursor-pointer text-[13px] text-secondary font-semibold p-0">{t('article.reply')}</button>
                       </div>
                       {c.replies?.map(r => (
-                        <div key={r.id} style={{ display: 'flex', gap: 12, marginTop: 16, paddingLeft: 12, borderLeft: `2px solid ${C.neutral}` }}>
-                          <div style={{ width: 30, height: 30, borderRadius: '50%', background: C.bgSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: C.primary }}>{r.author[0]}</span>
+                        <div key={r.id} className="flex gap-3 mt-4 pl-3 border-l-2 border-gray-200">
+                          <div className="w-[30px] h-[30px] rounded-full bg-soft flex items-center justify-center shrink-0">
+                            <span className="text-[11px] font-bold text-primary">{r.author[0]}</span>
                           </div>
                           <div>
-                            <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-                              <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: 700, color: C.textPrimary }}>{r.author}</span>
-                              <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 12, color: C.textSecondary }}>{r.time}</span>
+                            <div className="flex gap-2 mb-1">
+                              <span className="text-[13px] font-bold text-gray-900">{r.author}</span>
+                              <span className="text-[12px] text-gray-500">{r.time}</span>
                             </div>
-                            <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, color: '#333', lineHeight: 1.6, margin: 0 }}>{r.text}</p>
+                            <p className="text-[14px] text-[#333] leading-relaxed m-0">{r.text}</p>
                           </div>
                         </div>
                       ))}
@@ -191,29 +211,28 @@ export default function ArticleContent({ article }) {
           </article>
 
           {/* Sidebar */}
-          <aside style={{ position: 'sticky', top: 112, alignSelf: 'start' }}>
+          <aside className="lg:sticky lg:top-28 lg:self-start space-y-8">
             <AdBlock w="100%" h={250} label="300×250" />
-            <div style={{ marginTop: 32 }}>
-              <SectionHeading title="Most Read" />
-              {mostRead.slice(0, 4).map((a, i) => (
-                <div key={a.slug || a.id} onClick={() => router.push(`/article/${a.slug}`)} style={{ display: 'flex', gap: 10, marginBottom: 14, cursor: 'pointer' }}
-                  onMouseEnter={e => e.currentTarget.querySelector('.sb-title').style.color = C.secondary}
-                  onMouseLeave={e => e.currentTarget.querySelector('.sb-title').style.color = C.textPrimary}
-                >
-                  <span style={{ fontSize: 24, fontWeight: 800, color: '#e8eaf0', fontFamily: 'Montserrat, sans-serif', lineHeight: 1, width: 24, flexShrink: 0 }}>{i + 1}</span>
-                  <div className="sb-title" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: 600, lineHeight: 1.4, color: C.textPrimary, transition: 'color 0.15s' }}>{a.title}</div>
-                </div>
-              ))}
+            <div>
+              <SectionHeading title={t('article.most_read')} />
+              {mostRead.slice(0, 4).map((a, i) => {
+                const displayTitle = ARTICLE_TRANSLATIONS[a.slug]?.[lang]?.title || a.title
+                return (
+                  <div key={a.slug || a.id} onClick={() => router.push(`/article/${a.slug}`)}
+                    className="group flex gap-2.5 mb-3.5 cursor-pointer">
+                    <span className="text-[24px] font-extrabold text-gray-200 leading-none w-6 shrink-0">{i + 1}</span>
+                    <div className="text-[13px] font-semibold leading-snug text-gray-900 group-hover:text-secondary transition-colors">{displayTitle}</div>
+                  </div>
+                )
+              })}
             </div>
-            <div style={{ marginTop: 32 }}>
-              <SectionHeading title={`More in ${article.category}`} />
+            <div>
+              <SectionHeading title={`${t('article.more_in')} ${catNames[article.category] || article.category}`} />
               {NAVO_DATA.articles.filter(a => a.category === article.category && a.id !== article.id).slice(0, 4).map(a => (
                 <NewsCard key={a.slug || a.id} article={a} horizontal />
               ))}
             </div>
-            <div style={{ marginTop: 16 }}>
-              <AdBlock w="100%" h={400} label="300×400" />
-            </div>
+            <AdBlock w="100%" h={400} label="300×400" />
           </aside>
         </div>
       </div>

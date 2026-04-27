@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { C } from '@/lib/constants'
 import { NAVO_DATA } from '@/lib/data'
+import { useT, useLanguage, CAT_DISPLAY } from '@/lib/i18n'
 import ImgPlaceholder from '@/components/ui/ImgPlaceholder'
 import NewsCard from '@/components/ui/NewsCard'
 import CategoryPill from '@/components/ui/CategoryPill'
@@ -25,19 +26,19 @@ const CAT_COLORS = {
 }
 
 function FeaturedCard({ article, category, activeTab, isMain }) {
-  const [h, setH] = useState(false)
   const router = useRouter()
   return (
     <div onClick={() => router.push(`/article/${article.slug}`)}
-      onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-      style={{ position: 'relative', borderRadius: 8, overflow: 'hidden', cursor: 'pointer', minHeight: isMain ? 380 : 180 }}
+      className="group relative rounded-lg overflow-hidden cursor-pointer"
+      style={{ minHeight: isMain ? 380 : 180 }}
     >
       <ImgPlaceholder h="100%" label={article.title} seed={article.slug} category={category} style={{ position: 'absolute', inset: 0, height: '100%' }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 60%)' }} />
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: isMain ? '28px 28px' : '20px 20px' }}>
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 60%)' }} />
+      <div className="absolute bottom-0 left-0 right-0" style={{ padding: isMain ? '28px' : '20px' }}>
         <CategoryPill cat={activeTab !== 'All' ? activeTab : article.category} small />
-        <h2 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: isMain ? 24 : 17, fontWeight: 700, color: '#fff', lineHeight: 1.3, margin: '8px 0 8px', textDecoration: h ? 'underline' : 'none', textDecorationColor: 'rgba(255,255,255,0.5)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{article.title}</h2>
-        <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 12, color: 'rgba(255,255,255,0.65)' }}>{article.author.name} · {article.date}</div>
+        <h2 className="font-bold text-white leading-snug mt-2 mb-2 group-hover:underline decoration-white/50 line-clamp-3"
+          style={{ fontSize: isMain ? 24 : 17 }}>{article.title}</h2>
+        <div className="text-[12px] text-white/65">{article.author.name} · {article.date}</div>
       </div>
     </div>
   )
@@ -45,6 +46,9 @@ function FeaturedCard({ article, category, activeTab, isMain }) {
 
 export default function CategoryPage() {
   const { slug: category } = useParams()
+  const t = useT()
+  const { lang } = useLanguage()
+  const catNames = CAT_DISPLAY[lang] || CAT_DISPLAY.en
   const [activeTab, setActiveTab] = useState('All')
   const [sort, setSort] = useState('latest')
   const [page, setPage] = useState(1)
@@ -55,65 +59,78 @@ export default function CategoryPage() {
   const featured = allArticles.slice(0, 2)
   const gridArticles = allArticles.slice(2)
   const bannerColor = CAT_COLORS[category] || C.primary
+  const displayCatName = catNames[category] || category
+
+  const sortOptions = [
+    { key: 'latest', label: t('cat_page.latest') },
+    { key: 'popular', label: t('cat_page.popular') },
+  ]
 
   return (
-    <div style={{ background: C.bg }}>
-      <div style={{ background: bannerColor, color: '#fff', padding: '48px 0 40px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+    <div className="bg-white">
+      {/* Banner */}
+      <div className="text-white py-10 md:py-12" style={{ background: bannerColor }}>
+        <div className="max-w-content mx-auto px-4 md:px-6">
+          <div className="flex items-end justify-between flex-wrap gap-4">
             <div>
-              <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', opacity: 0.6, marginBottom: 8 }}>Section</div>
-              <h1 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 48, fontWeight: 800, margin: 0, letterSpacing: '-1px' }}>{category}</h1>
-              <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 16, opacity: 0.75, margin: '12px 0 0', maxWidth: 480, lineHeight: 1.6 }}>
-                Comprehensive coverage of {category?.toLowerCase()} from our team of expert correspondents worldwide.
+              <div className="text-[11px] font-bold tracking-[2px] uppercase opacity-60 mb-2">{t('cat_page.section')}</div>
+              <h1 className="text-[36px] md:text-[48px] font-extrabold m-0 tracking-tight">{displayCatName}</h1>
+              <p className="text-[15px] md:text-[16px] opacity-75 mt-3 max-w-[480px] leading-relaxed">
+                {t('cat_page.coverage')} {displayCatName.toLowerCase()} {t('cat_page.coverage2')}
               </p>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 32, fontWeight: 800, opacity: 0.9 }}>{allArticles.length * 12}+</div>
-              <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, opacity: 0.6 }}>Articles published</div>
+            <div className="text-right hidden sm:block">
+              <div className="text-[32px] font-extrabold opacity-90">{allArticles.length * 12}+</div>
+              <div className="text-[13px] opacity-60">{t('cat_page.articles_published')}</div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 4, marginTop: 32, flexWrap: 'wrap' }}>
-            {tabs.map(t => (
-              <button key={t} onClick={() => setActiveTab(t)} style={{
-                fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: activeTab === t ? 700 : 500,
-                background: activeTab === t ? 'rgba(255,255,255,0.18)' : 'transparent', border: 'none',
-                borderBottom: activeTab === t ? '2px solid #fff' : '2px solid transparent',
-                color: '#fff', padding: '8px 16px', cursor: 'pointer', borderRadius: '4px 4px 0 0', transition: 'all 0.15s',
-              }}>{t}</button>
+          {/* Sub-category tabs */}
+          <div className="flex gap-1 mt-8 flex-wrap">
+            {tabs.map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)}
+                className={`text-[13px] px-4 py-2 cursor-pointer border-none rounded-t transition-all ${activeTab === tab ? 'font-bold bg-white/18 border-b-2 border-white' : 'font-medium bg-transparent border-b-2 border-transparent opacity-75 hover:opacity-100'} text-white`}
+              >{tab}</button>
             ))}
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
-          <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, color: C.textSecondary }}>
-            Showing <strong style={{ color: C.textPrimary }}>{allArticles.length}</strong> articles{activeTab !== 'All' ? ` in ${activeTab}` : ''}
+      <div className="max-w-content mx-auto px-4 md:px-6 py-8 md:py-10">
+        {/* Sort bar */}
+        <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
+          <span className="text-[14px] text-gray-500">
+            {t('cat_page.showing')} <strong className="text-gray-900">{allArticles.length}</strong> {t('cat_page.articles_count')}{activeTab !== 'All' ? ` ${t('cat_page.in')} ${activeTab}` : ''}
           </span>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: C.textSecondary }}>Sort:</span>
-            {['latest', 'popular'].map(s => (
-              <button key={s} onClick={() => setSort(s)} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: sort === s ? 700 : 400, background: sort === s ? C.primary : 'none', color: sort === s ? '#fff' : C.textPrimary, border: `1px solid ${sort === s ? C.primary : C.neutral}`, borderRadius: 4, padding: '6px 14px', cursor: 'pointer', transition: 'all 0.15s', textTransform: 'capitalize' }}>{s}</button>
+          <div className="flex gap-2 items-center">
+            <span className="text-[13px] text-gray-500">{t('cat_page.sort')}</span>
+            {sortOptions.map(({ key, label }) => (
+              <button key={key} onClick={() => setSort(key)}
+                className={`text-[13px] border rounded px-3.5 py-1.5 cursor-pointer transition-all capitalize ${sort === key ? 'font-bold bg-primary text-white border-primary' : 'font-normal bg-transparent text-gray-900 border-gray-300'}`}
+              >{label}</button>
             ))}
           </div>
         </div>
 
+        {/* Featured */}
         {featured.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: featured.length > 1 ? '2fr 1fr' : '1fr', gap: 24, marginBottom: 48 }}>
+          <div className={`grid gap-6 mb-12 ${featured.length > 1 ? 'grid-cols-1 md:grid-cols-[2fr_1fr]' : 'grid-cols-1'}`}>
             {featured.map((a, i) => <FeaturedCard key={a.slug || a.id} article={a} category={category} activeTab={activeTab} isMain={i === 0} />)}
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 28 }}>
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
           {(gridArticles.length > 0 ? gridArticles : allArticles).slice(0, page * 9).map(a => (
             <NewsCard key={a.slug || a.id} article={a} />
           ))}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 48 }}>
+        {/* Pagination */}
+        <div className="flex justify-center gap-2 mt-12">
           {[1, 2, 3, '…', 12].map((p, i) => (
-            <button key={i} onClick={() => typeof p === 'number' && setPage(p)} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, fontWeight: p === page ? 700 : 400, background: p === page ? C.primary : 'none', color: p === page ? '#fff' : C.textPrimary, border: `1px solid ${p === page ? C.primary : C.neutral}`, borderRadius: 4, width: 40, height: 40, cursor: 'pointer', transition: 'all 0.15s' }}>{p}</button>
+            <button key={i} onClick={() => typeof p === 'number' && setPage(p)}
+              className={`text-[14px] border rounded w-10 h-10 cursor-pointer transition-all ${p === page ? 'font-bold bg-primary text-white border-primary' : 'font-normal bg-transparent text-gray-900 border-gray-300 hover:border-primary hover:text-primary'}`}
+            >{p}</button>
           ))}
         </div>
       </div>

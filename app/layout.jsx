@@ -2,6 +2,7 @@ import { Montserrat } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import LanguageProvider from '@/lib/LanguageProvider'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -17,14 +18,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={montserrat.className}>
-      <body>
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <body className="flex flex-col min-h-screen bg-white">
+        <LanguageProvider>
           <Header />
-          <main style={{ flex: 1 }} className="page-enter">
-            {children}
-          </main>
+          <main className="flex-1 page-enter">{children}</main>
           <Footer />
-        </div>
+        </LanguageProvider>
       </body>
     </html>
   )

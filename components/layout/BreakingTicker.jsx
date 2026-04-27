@@ -1,37 +1,35 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { NAVO_DATA } from '@/lib/data'
+import { useLanguage, useT, BREAKING_ITEMS } from '@/lib/i18n'
 
 export default function BreakingTicker() {
   const [active, setActive] = useState(0)
-  const items = NAVO_DATA.breaking
+  const { lang } = useLanguage()
+  const t = useT()
+  const items = BREAKING_ITEMS[lang] || BREAKING_ITEMS.en
+
+  useEffect(() => { setActive(0) }, [lang])
 
   useEffect(() => {
-    const t = setInterval(() => setActive(a => (a + 1) % items.length), 5000)
-    return () => clearInterval(t)
+    const timer = setInterval(() => setActive(a => (a + 1) % items.length), 5000)
+    return () => clearInterval(timer)
   }, [items.length])
 
   return (
-    <div style={{ background: '#E53935', color: '#fff', display: 'flex', alignItems: 'center', height: 36, overflow: 'hidden' }}>
-      <div style={{
-        fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: 11,
-        letterSpacing: 1.2, padding: '0 16px', whiteSpace: 'nowrap',
-        borderRight: '1px solid rgba(255,255,255,0.3)', height: '100%',
-        display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.15)',
-        textTransform: 'uppercase',
-      }}>Breaking</div>
-      <div style={{ flex: 1, overflow: 'hidden', padding: '0 20px' }}>
-        <div style={{
-          fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: 500,
-          transition: 'opacity 0.4s', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}>{items[active]}</div>
+    <div className="bg-breaking text-white flex items-center h-9 overflow-hidden">
+      <div className="font-bold text-[11px] tracking-widest px-4 shrink-0 border-r border-white/30 h-full flex items-center bg-black/15 uppercase">
+        {t('breaking')}
       </div>
-      <div style={{ display: 'flex', gap: 6, padding: '0 16px' }}>
+      <div className="flex-1 overflow-hidden px-5 min-w-0">
+        <div className="text-[13px] font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+          {items[active]}
+        </div>
+      </div>
+      <div className="flex gap-1.5 px-4 shrink-0">
         {items.map((_, i) => (
-          <button key={i} onClick={() => setActive(i)} style={{
-            width: 6, height: 6, borderRadius: '50%', border: 'none', cursor: 'pointer',
-            background: i === active ? '#fff' : 'rgba(255,255,255,0.4)', padding: 0,
-          }} />
+          <button key={i} onClick={() => setActive(i)}
+            className={`w-1.5 h-1.5 rounded-full border-none cursor-pointer p-0 transition-all ${i === active ? 'bg-white' : 'bg-white/40'}`}
+          />
         ))}
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { C } from '@/lib/constants'
 import { NAVO_DATA } from '@/lib/data'
+import { useT, useLanguage, CAT_DISPLAY } from '@/lib/i18n'
 import ImgPlaceholder from '@/components/ui/ImgPlaceholder'
 import NewsCard from '@/components/ui/NewsCard'
 import SectionHeading from '@/components/ui/SectionHeading'
@@ -10,6 +11,9 @@ import CategoryPill from '@/components/ui/CategoryPill'
 
 export default function SearchContent() {
   const router = useRouter()
+  const t = useT()
+  const { lang } = useLanguage()
+  const catNames = CAT_DISPLAY[lang] || CAT_DISPLAY.en
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('q') || ''
 
@@ -21,8 +25,19 @@ export default function SearchContent() {
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
 
-  const types = ['All', 'Articles', 'Video', 'Photo reports']
-  const dates = ['Any time', 'Last 24h', 'Last week', 'Last month', 'Last year']
+  const types = [
+    { key: 'All', label: t('search.all') },
+    { key: 'Articles', label: t('search.articles') },
+    { key: 'Video', label: t('search.video') },
+    { key: 'Photo reports', label: t('search.photo') },
+  ]
+  const dates = [
+    { key: 'Any time', label: t('search.anytime') },
+    { key: 'Last 24h', label: t('search.24h') },
+    { key: 'Last week', label: t('search.week') },
+    { key: 'Last month', label: t('search.month') },
+    { key: 'Last year', label: t('search.year') },
+  ]
   const cats = ['All', ...NAVO_DATA.categories]
 
   const results = submitted && query.trim()
@@ -30,7 +45,7 @@ export default function SearchContent() {
         a.title.toLowerCase().includes(query.toLowerCase()) ||
         a.excerpt.toLowerCase().includes(query.toLowerCase()) ||
         a.category.toLowerCase().includes(query.toLowerCase()) ||
-        a.tags?.some(t => t.toLowerCase().includes(query.toLowerCase()))
+        a.tags?.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
       ).filter(a => catFilter === 'All' || a.category === catFilter)
     : []
 
@@ -56,43 +71,49 @@ export default function SearchContent() {
     const parts = text.split(new RegExp(`(${query})`, 'gi'))
     return parts.map((p, i) =>
       p.toLowerCase() === query.toLowerCase()
-        ? <mark key={i} style={{ background: 'rgba(50,63,144,0.15)', color: C.primary, borderRadius: 2, padding: '0 2px' }}>{p}</mark>
+        ? <mark key={i} className="bg-primary/15 text-primary rounded-sm px-0.5">{p}</mark>
         : p
     )
   }
 
-  const filterBtn = (active, label, onClick) => (
-    <button onClick={onClick} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, background: active ? C.primary : 'none', color: active ? '#fff' : C.textPrimary, border: `1px solid ${active ? C.primary : C.neutral}`, borderRadius: 4, padding: '6px 12px', cursor: 'pointer', transition: 'all 0.15s', fontWeight: active ? 600 : 400 }}>{label}</button>
+  const FilterBtn = ({ active, label, onClick }) => (
+    <button onClick={onClick}
+      className={`text-[13px] border rounded px-3 py-1.5 cursor-pointer transition-all ${active ? 'bg-primary text-white border-primary font-semibold' : 'bg-transparent text-gray-900 border-gray-300 hover:border-primary hover:text-primary'}`}
+    >{label}</button>
   )
 
+  const resultCount = results.length
+  const resultWord = resultCount === 1 ? t('search.result') : t('search.results')
+
   return (
-    <div style={{ background: C.bg, minHeight: '70vh' }}>
-      <div style={{ background: C.bgSoft, borderBottom: `1px solid ${C.neutral}`, padding: '48px 24px' }}>
-        <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <h1 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 32, fontWeight: 800, color: C.textPrimary, marginBottom: 24, letterSpacing: '-0.5px', textAlign: 'center' }}>
-            {submitted && query ? <>Results for "<span style={{ color: C.primary }}>{query}</span>"</> : 'Search NAVO'}
+    <div className="bg-white min-h-[70vh]">
+      {/* Search header */}
+      <div className="bg-soft border-b border-gray-200 px-4 py-10 md:py-12">
+        <div className="max-w-[720px] mx-auto">
+          <h1 className="text-[24px] md:text-[32px] font-extrabold text-gray-900 mb-6 tracking-tight text-center">
+            {submitted && query
+              ? <>{t('search.results_for')} "<span className="text-primary">{query}</span>"</>
+              : t('search.title')}
           </h1>
-          <form onSubmit={handleSubmit} style={{ position: 'relative' }}>
-            <div style={{ position: 'relative' }}>
-              <input
-                autoFocus
-                value={query}
+          <form onSubmit={handleSubmit} className="relative">
+            <div className="relative">
+              <input autoFocus value={query}
                 onChange={e => { setQuery(e.target.value); setSubmitted(false) }}
-                placeholder="Search articles, topics, people…"
-                style={{ width: '100%', height: 56, fontFamily: 'Montserrat, sans-serif', fontSize: 17, border: `2px solid ${C.primary}`, borderRadius: 6, padding: '0 120px 0 20px', outline: 'none', color: C.textPrimary, boxSizing: 'border-box', boxShadow: '0 4px 16px rgba(50,63,144,0.12)' }}
+                placeholder={t('search.placeholder')}
+                className="w-full h-14 text-[17px] border-2 border-primary rounded px-5 pr-28 outline-none text-gray-900 shadow-[0_4px_16px_rgba(50,63,144,0.12)]"
               />
-              <button type="submit" style={{ position: 'absolute', right: 6, top: 6, height: 44, fontFamily: 'Montserrat, sans-serif', fontSize: 14, fontWeight: 700, background: C.primary, color: '#fff', border: 'none', borderRadius: 4, padding: '0 24px', cursor: 'pointer' }}>Search</button>
+              <button type="submit"
+                className="absolute right-1.5 top-1.5 h-11 text-[14px] font-bold bg-primary text-white border-none rounded px-6 cursor-pointer"
+              >{t('search.button')}</button>
             </div>
             {showSuggestions && suggestions.length > 0 && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: '#fff', border: `1px solid ${C.neutral}`, borderRadius: '0 0 6px 6px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+              <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-b-md shadow-xl overflow-hidden">
                 {suggestions.map(s => (
                   <div key={s.id} onClick={() => { setQuery(s.title); setSubmitted(true); setShowSuggestions(false) }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', cursor: 'pointer', borderBottom: `1px solid ${C.bgSoft}`, transition: 'background 0.1s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = C.bgSoft}
-                    onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                    className="flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-soft hover:bg-soft transition-colors"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.textSecondary} strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, color: C.textPrimary }}>{s.title.slice(0, 60)}…</span>
+                    <span className="text-[14px] text-gray-900">{s.title.slice(0, 60)}…</span>
                     <CategoryPill cat={s.category} small />
                   </div>
                 ))}
@@ -102,21 +123,28 @@ export default function SearchContent() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 24px' }}>
+      <div className="max-w-content mx-auto px-4 md:px-6 py-8">
+        {/* Filters */}
         {submitted && (
-          <div style={{ display: 'flex', gap: 24, marginBottom: 32, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          <div className="flex gap-6 mb-8 flex-wrap items-start">
             <div>
-              <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: C.textSecondary, marginBottom: 8 }}>Type</div>
-              <div style={{ display: 'flex', gap: 6 }}>{types.map(t => filterBtn(typeFilter === t, t, () => setTypeFilter(t)))}</div>
+              <div className="text-[11px] font-bold tracking-widest uppercase text-gray-500 mb-2">{t('search.filter_type')}</div>
+              <div className="flex gap-1.5 flex-wrap">
+                {types.map(({ key, label }) => <FilterBtn key={key} active={typeFilter === key} label={label} onClick={() => setTypeFilter(key)} />)}
+              </div>
             </div>
             <div>
-              <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: C.textSecondary, marginBottom: 8 }}>Date</div>
-              <div style={{ display: 'flex', gap: 6 }}>{dates.map(d => filterBtn(dateFilter === d, d, () => setDateFilter(d)))}</div>
+              <div className="text-[11px] font-bold tracking-widest uppercase text-gray-500 mb-2">{t('search.filter_date')}</div>
+              <div className="flex gap-1.5 flex-wrap">
+                {dates.map(({ key, label }) => <FilterBtn key={key} active={dateFilter === key} label={label} onClick={() => setDateFilter(key)} />)}
+              </div>
             </div>
             <div>
-              <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: C.textSecondary, marginBottom: 8 }}>Category</div>
-              <select value={catFilter} onChange={e => setCatFilter(e.target.value)} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, color: C.textPrimary, border: `1px solid ${C.neutral}`, borderRadius: 4, padding: '7px 12px', background: '#fff', cursor: 'pointer', outline: 'none' }}>
-                {cats.map(c => <option key={c}>{c}</option>)}
+              <div className="text-[11px] font-bold tracking-widest uppercase text-gray-500 mb-2">{t('search.filter_cat')}</div>
+              <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
+                className="text-[13px] text-gray-900 border border-gray-300 rounded px-3 py-[7px] bg-white cursor-pointer outline-none"
+              >
+                {cats.map(c => <option key={c} value={c}>{c === 'All' ? t('search.all') : catNames[c] || c}</option>)}
               </select>
             </div>
           </div>
@@ -125,49 +153,51 @@ export default function SearchContent() {
         {submitted ? (
           results.length > 0 ? (
             <div>
-              <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, color: C.textSecondary, marginBottom: 28 }}>Found <strong style={{ color: C.textPrimary }}>{results.length}</strong> result{results.length !== 1 ? 's' : ''} for "{query}"</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <p className="text-[14px] text-gray-500 mb-7">
+                {t('search.found')} <strong className="text-gray-900">{resultCount}</strong> {resultWord} {t('search.for')} "{query}"
+              </p>
+              <div className="flex flex-col gap-6">
                 {results.map(a => (
-                  <div key={a.slug || a.id} onClick={() => router.push(`/article/${a.slug}`)} style={{ display: 'flex', gap: 20, cursor: 'pointer', padding: '20px 0', borderBottom: `1px solid ${C.bgSoft}` }}
-                    onMouseEnter={e => e.currentTarget.querySelector('.res-title').style.color = C.secondary}
-                    onMouseLeave={e => e.currentTarget.querySelector('.res-title').style.color = C.textPrimary}
+                  <div key={a.slug || a.id} onClick={() => router.push(`/article/${a.slug}`)}
+                    className="group flex flex-col sm:flex-row gap-5 cursor-pointer py-5 border-b border-soft"
                   >
-                    <ImgPlaceholder w={140} h={90} label={a.title} seed={a.slug} category={a.category} style={{ borderRadius: 4, flexShrink: 0 }} />
-                    <div style={{ flex: 1 }}>
+                    <ImgPlaceholder w={140} h={90} label={a.title} seed={a.slug} category={a.category} style={{ borderRadius: 4, flexShrink: 0, width: '100%', maxWidth: 140 }} />
+                    <div className="flex-1">
                       <CategoryPill cat={a.category} small />
-                      <h3 className="res-title" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 18, fontWeight: 700, color: C.textPrimary, lineHeight: 1.3, margin: '8px 0', transition: 'color 0.15s' }}>{highlight(a.title)}</h3>
-                      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, color: C.textSecondary, lineHeight: 1.6, margin: '0 0 10px' }}>{highlight(a.excerpt)}</p>
-                      <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 12, color: C.textSecondary }}>{a.author.name} · {a.date} · {a.readTime}</div>
+                      <h3 className="text-[18px] font-bold text-gray-900 group-hover:text-secondary leading-snug my-2 transition-colors">{highlight(a.title)}</h3>
+                      <p className="text-[14px] text-gray-500 leading-relaxed mb-2.5">{highlight(a.excerpt)}</p>
+                      <div className="text-[12px] text-gray-500">{a.author.name} · {a.date} · {a.readTime}</div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '60px 0' }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
-              <h2 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 24, fontWeight: 700, color: C.textPrimary, marginBottom: 12 }}>No results for "{query}"</h2>
-              <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 16, color: C.textSecondary, marginBottom: 32 }}>Try different keywords or browse our sections</p>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <div className="text-center py-16">
+              <div className="text-[48px] mb-4">🔍</div>
+              <h2 className="text-[24px] font-bold text-gray-900 mb-3">{t('search.no_results')} "{query}"</h2>
+              <p className="text-[16px] text-gray-500 mb-8">{t('search.no_results_sub')}</p>
+              <div className="flex justify-center gap-2.5 flex-wrap">
                 {NAVO_DATA.categories.map(c => (
-                  <button key={c} onClick={() => router.push(`/category/${c}`)} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, fontWeight: 600, background: C.bgSoft, color: C.primary, border: `1px solid ${C.neutral}`, borderRadius: 20, padding: '8px 18px', cursor: 'pointer' }}>{c}</button>
+                  <button key={c} onClick={() => router.push(`/category/${c}`)}
+                    className="text-[14px] font-semibold bg-soft text-primary border border-gray-200 rounded-full px-4 py-2 cursor-pointer hover:bg-primary hover:text-white transition-all"
+                  >{catNames[c] || c}</button>
                 ))}
               </div>
             </div>
           )
         ) : (
           <div>
-            <SectionHeading title="Trending Topics" />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 48 }}>
-              {['Geopolitics', 'AI Regulation', 'Climate', 'Economy', 'Elections', 'Ukraine', 'NATO', 'Digital Currency', 'Semiconductors', 'Youth Unemployment'].map(t => (
-                <button key={t} onClick={() => { setQuery(t); setSubmitted(true) }} style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 14, fontWeight: 500, background: C.bgSoft, color: C.textPrimary, border: `1px solid ${C.neutral}`, borderRadius: 20, padding: '9px 18px', cursor: 'pointer', transition: 'all 0.15s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = C.primary; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = C.primary }}
-                  onMouseLeave={e => { e.currentTarget.style.background = C.bgSoft; e.currentTarget.style.color = C.textPrimary; e.currentTarget.style.borderColor = C.neutral }}
-                >{t}</button>
+            <SectionHeading title={t('search.trending')} />
+            <div className="flex flex-wrap gap-2.5 mb-12">
+              {['Geopolitics', 'AI Regulation', 'Climate', 'Economy', 'Elections', 'Ukraine', 'NATO', 'Digital Currency', 'Semiconductors', 'Youth Unemployment'].map(topic => (
+                <button key={topic} onClick={() => { setQuery(topic); setSubmitted(true) }}
+                  className="text-[14px] font-medium bg-soft text-gray-900 border border-gray-200 rounded-full px-4 py-2 cursor-pointer transition-all hover:bg-primary hover:text-white hover:border-primary"
+                >{topic}</button>
               ))}
             </div>
-            <SectionHeading title="Most Read This Week" />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+            <SectionHeading title={t('search.most_read')} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {NAVO_DATA.articles.slice(0, 6).map(a => <NewsCard key={a.slug || a.id} article={a} />)}
             </div>
           </div>

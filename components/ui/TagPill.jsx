@@ -1,22 +1,10 @@
 'use client'
-import { C } from '@/lib/constants'
 
 export default function TagPill({ tag, onClick }) {
   return (
     <span
       onClick={onClick}
-      style={{
-        display: 'inline-block',
-        fontFamily: 'Montserrat, sans-serif',
-        fontSize: 12, fontWeight: 500,
-        color: '#555', background: C.bgSoft,
-        border: '1px solid #e5e5e5',
-        borderRadius: 20, padding: '4px 12px',
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'all 0.15s',
-      }}
-      onMouseEnter={e => { if (onClick) { e.currentTarget.style.borderColor = C.secondary; e.currentTarget.style.color = C.secondary } }}
-      onMouseLeave={e => { if (onClick) { e.currentTarget.style.borderColor = '#e5e5e5'; e.currentTarget.style.color = '#555' } }}
+      className={`inline-block text-[12px] font-medium text-gray-600 bg-soft border border-gray-200 rounded-full px-3 py-1 transition-all ${onClick ? 'cursor-pointer hover:border-secondary hover:text-secondary' : ''}`}
     >#{tag}</span>
   )
 }
