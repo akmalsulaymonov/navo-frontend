@@ -40,13 +40,6 @@ export default function ArticleContent({ article }) {
   const displayTitle = trans?.title || article.title
 
   const [bookmarked, setBookmarked] = useState(false)
-  const [commentText, setCommentText] = useState('')
-  const [comments, setComments] = useState([
-    { id: 1, author: 'David K.', text: 'Exceptional analysis. The section on multilateral institutions deserves a dedicated piece.', time: '2h ago', likes: 14, dislikes: 1, replies: [
-      { id: 2, author: 'Priya M.', text: 'Fully agree. The WTO dysfunction deserves much more coverage.', time: '1h ago', likes: 7, dislikes: 0 }
-    ]},
-    { id: 3, author: 'Anna V.', text: 'Strong reporting. Would have appreciated more data on the economic dimensions.', time: '3h ago', likes: 9, dislikes: 2, replies: [] },
-  ])
 
   const mostRead = NAVO_DATA.mostRead.map(id => NAVO_DATA.articles.find(a => a.id === id)).filter(Boolean)
   const related = NAVO_DATA.articles.filter(a => a.id !== article.id && (a.category === article.category || a.tags?.some(tag => article.tags?.includes(tag)))).slice(0, 3)
@@ -54,26 +47,18 @@ export default function ArticleContent({ article }) {
   const fullAuthor = getFullAuthor(article.author.name)
 
   const renderBody = (body) => body.slice(0, 3).map((block, i) => {
-    if (block.type === 'p') return <p key={i} className="text-[17px] leading-[1.75] text-[#222] mb-6">{block.content}</p>
+    if (block.type === 'p') return <p key={i} className="text-[17px] leading-[1.75] text-[#222] dark:text-gray-300 mb-6">{block.content}</p>
     if (block.type === 'quote') return (
-      <blockquote key={i} className="my-8 px-7 py-5 border-l-4 border-primary bg-soft rounded-r-md">
-        <p className="text-[18px] font-medium text-[#333] leading-[1.65] italic mb-2.5">"{block.content}"</p>
-        {block.attribution && <cite className="text-[13px] text-gray-500 not-italic font-semibold">— {block.attribution}</cite>}
+      <blockquote key={i} className="my-8 px-7 py-5 border-l-4 border-primary bg-soft dark:bg-[#161b2e] rounded-r-md">
+        <p className="text-[18px] font-medium text-[#333] dark:text-gray-200 leading-[1.65] italic mb-2.5">"{block.content}"</p>
+        {block.attribution && <cite className="text-[13px] text-gray-500 dark:text-gray-400 not-italic font-semibold">— {block.attribution}</cite>}
       </blockquote>
     )
     return null
   })
 
-  const addComment = () => {
-    if (!commentText.trim()) return
-    setComments(prev => [{ id: Date.now(), author: 'You', text: commentText, time: 'just now', likes: 0, dislikes: 0, replies: [] }, ...prev])
-    setCommentText('')
-  }
-
-  const totalComments = comments.reduce((n, c) => n + 1 + c.replies.length, 0)
-
   return (
-    <div className="bg-white">
+    <div className="bg-white dark:bg-[#0d0f17]">
       <div className="max-w-content mx-auto px-4 md:px-6 py-6 md:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-12">
 
@@ -91,9 +76,9 @@ export default function ArticleContent({ article }) {
             </nav>
 
             <CategoryPill cat={article.category} />
-            <h1 className="text-[26px] md:text-[32px] lg:text-[36px] font-bold text-gray-900 leading-tight mt-3.5 mb-4 tracking-tight">{displayTitle}</h1>
+            <h1 className="text-[26px] md:text-[32px] lg:text-[36px] font-bold text-gray-900 dark:text-white leading-tight mt-3.5 mb-4 tracking-tight">{displayTitle}</h1>
             {article.subtitle && (
-              <p className="text-[18px] md:text-[20px] font-normal text-[#444] leading-snug mb-6 border-b border-gray-300 pb-6">{article.subtitle}</p>
+              <p className="text-[18px] md:text-[20px] font-normal text-[#444] dark:text-gray-300 leading-snug mb-6 border-b border-gray-300 dark:border-gray-700 pb-6">{article.subtitle}</p>
             )}
 
             {/* Author + share */}
@@ -142,11 +127,11 @@ export default function ArticleContent({ article }) {
                 <AdBlock w={580} h={90} label="580×90 in-article" />
               </div>
               {(article.body || []).slice(3).map((block, i) => {
-                if (block.type === 'p') return <p key={i} className="text-[17px] leading-[1.75] text-[#222] mb-6">{block.content}</p>
+                if (block.type === 'p') return <p key={i} className="text-[17px] leading-[1.75] text-[#222] dark:text-gray-300 mb-6">{block.content}</p>
                 if (block.type === 'quote') return (
-                  <blockquote key={i} className="my-8 px-7 py-5 border-l-4 border-primary bg-soft rounded-r-md">
-                    <p className="text-[18px] font-medium text-[#333] leading-[1.65] italic mb-2.5">"{block.content}"</p>
-                    {block.attribution && <cite className="text-[13px] text-gray-500 not-italic font-semibold">— {block.attribution}</cite>}
+                  <blockquote key={i} className="my-8 px-7 py-5 border-l-4 border-primary bg-soft dark:bg-[#161b2e] rounded-r-md">
+                    <p className="text-[18px] font-medium text-[#333] dark:text-gray-200 leading-[1.65] italic mb-2.5">"{block.content}"</p>
+                    {block.attribution && <cite className="text-[13px] text-gray-500 dark:text-gray-400 not-italic font-semibold">— {block.attribution}</cite>}
                   </blockquote>
                 )
                 return null
@@ -154,7 +139,7 @@ export default function ArticleContent({ article }) {
             </div>
 
             {article.tags && (
-              <div className="flex flex-wrap gap-2 mt-8 pt-6 border-t border-gray-300">
+              <div className="flex flex-wrap gap-2 mt-8 pt-6 border-t border-gray-300 dark:border-gray-700">
                 {article.tags.map(tag => <TagPill key={tag} tag={tag} onClick={() => router.push(`/search?q=${encodeURIComponent(tag)}`)} />)}
               </div>
             )}
@@ -166,54 +151,19 @@ export default function ArticleContent({ article }) {
               </div>
             </div>
 
-            {/* Comments */}
-            <div className="mt-12 pt-8 border-t border-gray-300">
-              <h3 className="text-[22px] font-bold text-gray-900 mb-6">{t('article.comments')} ({totalComments})</h3>
-              <div className="bg-soft rounded-lg p-5 mb-8">
-                <textarea value={commentText} onChange={e => setCommentText(e.target.value)}
-                  placeholder={t('article.comment_placeholder')}
-                  className="w-full min-h-[90px] text-[14px] border border-gray-300 rounded-md p-3 resize-y outline-none text-gray-900 bg-white focus:border-primary transition-colors"
+            {/* Video */}
+            <div className="mt-12 pt-8 border-t border-gray-300 dark:border-gray-700">
+              <h3 className="text-[22px] font-bold text-gray-900 dark:text-white mb-5">{t('article.watch')}</h3>
+              <div className="relative w-full rounded-xl overflow-hidden shadow-md bg-black" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  className="absolute inset-0 w-full h-full"
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1"
+                  title={displayTitle}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
                 />
-                <div className="flex justify-end mt-2.5">
-                  <button onClick={addComment} className="text-[13px] font-semibold bg-primary text-white border-none rounded px-5 py-2.5 cursor-pointer">{t('article.post_comment')}</button>
-                </div>
               </div>
-              {comments.map(c => (
-                <div key={c.id} className="mb-6">
-                  <div className="flex gap-3.5">
-                    <div className="w-[38px] h-[38px] rounded-full bg-soft border border-gray-200 flex items-center justify-center shrink-0">
-                      <span className="text-[13px] font-bold text-primary">{c.author[0]}</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2.5 mb-1.5">
-                        <span className="text-[14px] font-bold text-gray-900">{c.author}</span>
-                        <span className="text-[12px] text-gray-500">{c.time}</span>
-                      </div>
-                      <p className="text-[15px] text-[#333] leading-relaxed mb-2.5">{c.text}</p>
-                      <div className="flex gap-3.5 items-center">
-                        {[['👍', c.likes], ['👎', c.dislikes]].map(([icon, count]) => (
-                          <button key={icon} className="bg-transparent border-none cursor-pointer text-[13px] text-gray-500 p-0 flex items-center gap-1">{icon} {count}</button>
-                        ))}
-                        <button className="bg-transparent border-none cursor-pointer text-[13px] text-secondary font-semibold p-0">{t('article.reply')}</button>
-                      </div>
-                      {c.replies?.map(r => (
-                        <div key={r.id} className="flex gap-3 mt-4 pl-3 border-l-2 border-gray-200">
-                          <div className="w-[30px] h-[30px] rounded-full bg-soft flex items-center justify-center shrink-0">
-                            <span className="text-[11px] font-bold text-primary">{r.author[0]}</span>
-                          </div>
-                          <div>
-                            <div className="flex gap-2 mb-1">
-                              <span className="text-[13px] font-bold text-gray-900">{r.author}</span>
-                              <span className="text-[12px] text-gray-500">{r.time}</span>
-                            </div>
-                            <p className="text-[14px] text-[#333] leading-relaxed m-0">{r.text}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </article>
 

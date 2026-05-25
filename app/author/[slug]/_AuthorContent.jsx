@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { C } from '@/lib/constants'
 import { NAVO_DATA } from '@/lib/data'
 import { getImgId } from '@/lib/utils'
-import { useT, useLanguage } from '@/lib/i18n'
+import { useT, useLanguage, CAT_DISPLAY } from '@/lib/i18n'
 import { ARTICLE_TRANSLATIONS } from '@/lib/articleTranslations'
 import NewsCard from '@/components/ui/NewsCard'
 import AdBlock from '@/components/ui/AdBlock'
@@ -15,6 +15,7 @@ export default function AuthorContent({ author }) {
   const router = useRouter()
   const t = useT()
   const { lang } = useLanguage()
+  const catNames = CAT_DISPLAY[lang] || CAT_DISPLAY.en
   const [activeFilter, setActiveFilter] = useState('All')
   const [headerVisible, setHeaderVisible] = useState(false)
 
@@ -49,7 +50,7 @@ export default function AuthorContent({ author }) {
     : `${t('author.all_articles')} — ${activeFilter} (${filtered.length})`
 
   return (
-    <div className="bg-white">
+    <div className="bg-white dark:bg-[#0d0f17]">
       {/* Hero banner */}
       <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1f4e 0%, #323F90 60%, #1486C8 100%)' }}>
         <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)', backgroundSize: '14px 14px' }} />
@@ -106,7 +107,7 @@ export default function AuthorContent({ author }) {
             {cats.map(cat => (
               <button key={cat} onClick={() => setActiveFilter(cat)}
                 className={`text-[13px] px-4 py-3 cursor-pointer border-none rounded-t transition-all ${activeFilter === cat ? 'font-bold bg-white/15 border-b-[3px] border-white text-white' : 'font-medium bg-transparent border-b-[3px] border-transparent text-white/60 hover:text-white/90'}`}
-              >{cat}</button>
+              >{cat === 'All' ? t('search.all') : (catNames[cat] || cat)}</button>
             ))}
           </div>
         </div>
@@ -116,9 +117,9 @@ export default function AuthorContent({ author }) {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-12">
           <div>
             {/* Bio */}
-            <div className="bg-soft rounded-lg px-6 py-5 mb-10 border-l-4 border-primary flex gap-4 items-start">
+            <div className="bg-soft dark:bg-[#161b2e] rounded-lg px-6 py-5 mb-10 border-l-4 border-primary flex gap-4 items-start">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={C.primary} strokeWidth="2" className="shrink-0 mt-0.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <p className="text-[15px] text-[#444] leading-[1.75] m-0">{author.bio}</p>
+              <p className="text-[15px] text-[#444] dark:text-gray-300 leading-[1.75] m-0">{author.bio}</p>
             </div>
 
             {/* Featured article */}
@@ -171,7 +172,7 @@ export default function AuthorContent({ author }) {
 
           {/* Sidebar */}
           <aside className="lg:sticky lg:top-28 lg:self-start space-y-8">
-            <div className="bg-soft rounded-lg p-5 border border-gray-200">
+            <div className="bg-soft dark:bg-[#161b2e] rounded-lg p-5 border border-gray-200 dark:border-gray-700">
               <div className="text-[11px] font-bold tracking-[1.2px] uppercase text-gray-500 mb-3.5">{t('author.about')}</div>
               <div className="flex gap-3 items-center mb-3.5">
                 <img src={`https://images.unsplash.com/${author.photoId}?auto=format&fit=crop&w=80&h=80&q=80`} alt={author.name} className="w-12 h-12 rounded-full object-cover border-2 border-primary" />
@@ -187,10 +188,10 @@ export default function AuthorContent({ author }) {
                   ['✍️', author.yearsActive || 5, t('author.years')],
                   ['🏆', (author.categories || []).length || 3, t('author.topics')],
                 ].map(([icon, val, lbl]) => (
-                  <div key={lbl} className="bg-white rounded-md p-3 text-center border border-gray-200">
+                  <div key={lbl} className="bg-white dark:bg-[#0d0f17] rounded-md p-3 text-center border border-gray-200 dark:border-gray-700">
                     <div className="text-base mb-0.5">{icon}</div>
-                    <div className="text-[14px] font-bold text-gray-900">{val}</div>
-                    <div className="text-[10px] text-gray-500 uppercase tracking-wide">{lbl}</div>
+                    <div className="text-[14px] font-bold text-gray-900 dark:text-white">{val}</div>
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide">{lbl}</div>
                   </div>
                 ))}
               </div>

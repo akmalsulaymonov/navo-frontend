@@ -4,12 +4,18 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body { background: #fff; color: #1A1A1A; -webkit-font-smoothing: antialiased; }
+body { background: #fff; color: #1A1A1A; -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
 button { font-family: inherit; }
 input, textarea, select { font-family: inherit; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #f7f8fa; }
 ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+/* Dark mode base */
+.dark body { background: #0d0f17; color: #e2e8f0; }
+.dark ::-webkit-scrollbar-track { background: #161b2e; }
+.dark ::-webkit-scrollbar-thumb { background: #374151; }
+
 .page-enter { animation: fadeUp 0.25s ease; }
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }

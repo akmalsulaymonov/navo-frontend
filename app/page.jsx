@@ -21,7 +21,7 @@ function HeroSideCard({ article }) {
       <ImgPlaceholder h="100%" label={article.title} seed={article.slug} category={article.category} style={{ position: 'absolute', inset: 0, height: '100%' }} />
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)' }} />
       <div className="absolute bottom-0 left-0 right-0 p-3.5">
-        <CategoryPill cat={article.category} small />
+        <CategoryPill cat={article.category} small overlay />
         <div className="text-[14px] font-semibold text-white leading-snug mt-1.5 group-hover:underline decoration-white/50 line-clamp-2">{displayTitle}</div>
         <div className="text-[11px] text-white/60 mt-1">{article.date}</div>
       </div>
@@ -53,9 +53,9 @@ export default function HomePage() {
   const heroExcerpt = heroTrans?.excerpt || hero.excerpt
 
   return (
-    <div className="bg-white">
+    <div className="bg-white dark:bg-[#0d0f17]">
       {/* Top Ad */}
-      <div className="bg-soft border-b border-gray-200 hidden md:flex justify-center px-6 py-3">
+      <div className="bg-soft dark:bg-[#161b2e] border-b border-gray-200 dark:border-gray-700 hidden md:flex justify-center px-6 py-3">
         <AdBlock w={728} h={90} label="728×90 leaderboard" />
       </div>
 
@@ -68,7 +68,7 @@ export default function HomePage() {
             <ImgPlaceholder h={480} label={hero.title} seed={hero.slug} category="hero" style={{ width: '100%', minHeight: 280 }} />
             <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)' }} />
             <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
-              <CategoryPill cat={hero.category} />
+              <CategoryPill cat={hero.category} overlay />
               <h1 className="text-[22px] md:text-[28px] lg:text-[32px] font-bold text-white leading-tight mt-2.5 mb-3 tracking-tight group-hover:underline decoration-white/50">{heroTitle}</h1>
               <p className="hidden md:block text-[15px] text-white/80 leading-relaxed mb-3.5 max-w-[560px] line-clamp-2">{heroExcerpt}</p>
               <div className="flex items-center gap-3">

@@ -13,10 +13,20 @@ const CAT_COLORS = {
 }
 const DEFAULT_COLOR = { text: '#1E2A7A', bg: 'rgba(50,63,144,0.09)', dot: '#323F90' }
 
-export default function CategoryPill({ cat, small }) {
+export default function CategoryPill({ cat, small, overlay }) {
   const { lang } = useLanguage()
   const { text, bg, dot } = CAT_COLORS[cat] || DEFAULT_COLOR
   const displayName = CAT_DISPLAY[lang]?.[cat] || cat
+
+  // overlay mode: used on dark image backgrounds (hero, side cards)
+  const overlayStyle = {
+    color: '#fff',
+    background: 'rgba(255,255,255,0.18)',
+    boxShadow: '0 1px 6px rgba(0,0,0,0.18)',
+    backdropFilter: 'blur(4px)',
+    WebkitBackdropFilter: 'blur(4px)',
+    border: '1px solid rgba(255,255,255,0.28)',
+  }
 
   return (
     <span
@@ -25,14 +35,22 @@ export default function CategoryPill({ cat, small }) {
         gap: small ? 4 : 5,
         fontSize: small ? 10 : 11,
         letterSpacing: 0.8,
-        color: text,
-        background: bg,
         borderRadius: 3,
         padding: small ? '2px 6px' : '3px 8px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.07)',
+        ...(overlay
+          ? overlayStyle
+          : { color: text, background: bg, boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }
+        ),
       }}
     >
-      <span style={{ width: small ? 5 : 6, height: small ? 5 : 6, borderRadius: '50%', background: dot, flexShrink: 0, display: 'inline-block' }} />
+      <span style={{
+        width: small ? 5 : 6,
+        height: small ? 5 : 6,
+        borderRadius: '50%',
+        background: overlay ? 'rgba(255,255,255,0.85)' : dot,
+        flexShrink: 0,
+        display: 'inline-block',
+      }} />
       {displayName}
     </span>
   )
